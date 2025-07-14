@@ -1,37 +1,87 @@
 import json
 import os
 import threading
+import time
 from datetime import datetime
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 from .models import LogEntry, LoggingConfig
+from .config import ConfigManager
 
 class LogWriter:
-    def __init__(self, config: LoggingConfig):
+    def __init__(self, config: LoggingConfig, config_manager: ConfigManager = None):
         self.config = config
+        self.config_manager = config_manager
         self.lock = threading.Lock()
         self._ensure_log_directory()
     
     def _ensure_log_directory(self):
         """Ensure the log directory exists"""
-        log_path = Path(self.config.log_file_path)
-        log_path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            log_path = Path(self.config.log_file_path)
+            log_path.parent.mkdir(parents=True, exist_ok=True)
+        except (OSError, PermissionError) as e:
+            # If we can't create the directory, log the error but don't crash
+            print(f"Warning: Could not create log directory: {e}", file=__import__('sys').stderr)
     
     def _format_log_entry(self, entry: LogEntry) -> str:
         """Format a log entry for writing to file"""
-        context_str = ""
-        if entry.context:
-            context_str = f" {json.dumps(entry.context, separators=(',', ':'))}"
+        format_config = self.config.format_config
+        parts = []
         
-        stack_trace_str = ""
-        if entry.stackTrace:
-            stack_trace_str = f"\n{entry.stackTrace}"
+        # Add timestamp if enabled
+        if format_config.include_timestamp:
+            timestamp = self._format_timestamp(entry.timestamp, format_config.timestamp_format)
+            parts.append(f"[{timestamp}]")
         
-        component_str = ""
+        # Add log level
+        parts.append(f"[{entry.level.upper()}]")
+        
+        # Add source if enabled
+        if format_config.include_source:
+            parts.append(f"[{entry.source.upper()}]")
+        
+        # Add component if present
         if entry.component:
-            component_str = f"[{entry.component.upper()}] "
+            parts.append(f"[{entry.component.upper()}]")
         
-        return f"[{entry.timestamp}] [{entry.level.upper()}] [{entry.source.upper()}] {component_str}{entry.message}{context_str}{stack_trace_str}"
+        # Add message (with length limit if configured)
+        message = entry.message
+        if format_config.max_message_length and len(message) > format_config.max_message_length:
+            message = message[:format_config.max_message_length] + "..."
+        parts.append(message)
+        
+        # Add context if enabled and present
+        if format_config.include_context and entry.context:
+            context_str = json.dumps(entry.context, separators=(',', ':'))
+            parts.append(context_str)
+        
+        # Join main parts
+        formatted_entry = " ".join(parts)
+        
+        # Add stack trace if present (always on new line)
+        if entry.stackTrace:
+            formatted_entry += f"\n{entry.stackTrace}"
+        
+        return formatted_entry
+    
+    def _format_timestamp(self, timestamp_str: str, format_type: str) -> str:
+        """Format timestamp according to the specified format"""
+        try:
+            # Parse ISO timestamp
+            dt = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+            
+            if format_type == 'iso':
+                return timestamp_str
+            elif format_type == 'local':
+                return dt.strftime('%Y-%m-%d %H:%M:%S')
+            elif format_type == 'unix':
+                return str(int(dt.timestamp()))
+            else:
+                return timestamp_str
+        except Exception:
+            # Fallback to original timestamp if parsing fails
+            return timestamp_str
     
     def write_entry(self, entry: LogEntry) -> None:
         """Write a single log entry to the unified log file"""

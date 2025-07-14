@@ -8,13 +8,15 @@ from typing import Dict, Any
 from .models import LogBatch, LogEntry, LoggingConfig
 from .log_writer import LogWriter
 from .unified_logger import setup_unified_logging, get_unified_logger
+from .config import ConfigManager
 
-# Initialize logging configuration and writer
-config = LoggingConfig()
-log_writer = LogWriter(config)
+# Initialize configuration manager and logging
+config_manager = ConfigManager()
+config = config_manager.get_config()
+log_writer = LogWriter(config, config_manager)
 
 # Set up unified logging system
-unified_logger = setup_unified_logging(config)
+unified_logger = setup_unified_logging(config_manager)
 logger = unified_logger.get_logger(__name__)
 
 # Initialize FastAPI app
@@ -93,6 +95,10 @@ async def receive_logs(log_batch: LogBatch) -> Dict[str, Any]:
             "processed_count": len(log_batch.entries)
         }
         
+    except HTTPException:
+        # Re-raise HTTPExceptions so they're handled properly by FastAPI
+        raise
+    
     except ValidationError as e:
         logger.error(f"Validation error: {e}")
         raise HTTPException(

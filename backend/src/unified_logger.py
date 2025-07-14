@@ -1,16 +1,18 @@
 import logging
 import sys
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 from .models import LogEntry, LoggingConfig
 from .log_writer import LogWriter
+from .config import ConfigManager
 
 class UnifiedLogHandler(logging.Handler):
     """Custom logging handler that writes to the unified log file"""
     
-    def __init__(self, log_writer: LogWriter):
+    def __init__(self, log_writer: LogWriter, config_manager: ConfigManager):
         super().__init__()
         self.log_writer = log_writer
+        self.config_manager = config_manager
     
     def emit(self, record: logging.LogRecord) -> None:
         """Emit a log record to the unified log file"""
@@ -78,10 +80,11 @@ class UnifiedLogHandler(logging.Handler):
 class UnifiedLogger:
     """Unified logging system for the backend"""
     
-    def __init__(self, config: LoggingConfig):
-        self.config = config
-        self.log_writer = LogWriter(config)
-        self.handler = UnifiedLogHandler(self.log_writer)
+    def __init__(self, config_manager: ConfigManager):
+        self.config_manager = config_manager
+        self.config = config_manager.get_config()
+        self.log_writer = LogWriter(self.config, config_manager)
+        self.handler = UnifiedLogHandler(self.log_writer, config_manager)
         self._setup_logging()
     
     def _setup_logging(self):
@@ -127,11 +130,30 @@ class UnifiedLogger:
 # Global unified logger instance
 _unified_logger: Optional[UnifiedLogger] = None
 
-def setup_unified_logging(config: LoggingConfig) -> UnifiedLogger:
+def setup_unified_logging(config_manager: ConfigManager) -> UnifiedLogger:
     """Set up the global unified logging system"""
     global _unified_logger
-    _unified_logger = UnifiedLogger(config)
+    _unified_logger = UnifiedLogger(config_manager)
     return _unified_logger
+
+def setup_unified_logging_from_config(config: LoggingConfig) -> UnifiedLogger:
+    """Set up the global unified logging system from a config object"""
+    # Create a temporary config manager from the config
+    import tempfile
+    import json
+    import os
+    
+    # Create a temporary config file
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
+        json.dump(config.dict(), f)
+        temp_config_path = f.name
+    
+    try:
+        config_manager = ConfigManager(temp_config_path)
+        return setup_unified_logging(config_manager)
+    finally:
+        # Clean up the temporary file
+        os.unlink(temp_config_path)
 
 def get_unified_logger() -> Optional[UnifiedLogger]:
     """Get the global unified logger instance"""
