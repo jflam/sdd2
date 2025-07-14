@@ -2,8 +2,9 @@ import os
 import tempfile
 import logging
 import pytest
-from backend.src.unified_logger import UnifiedLogger, setup_unified_logging, get_unified_logger
-from backend.src.models import LoggingConfig
+from src.unified_logger import UnifiedLogger, setup_unified_logging, get_unified_logger
+from src.models import LoggingConfig
+from src.config import ConfigManager
 
 class TestUnifiedLogger:
     
@@ -15,7 +16,14 @@ class TestUnifiedLogger:
             log_file_path=self.log_file,
             flush_immediately=True
         )
-        self.unified_logger = UnifiedLogger(self.config)
+        # Create a temporary config file for the ConfigManager
+        import json
+        config_file = os.path.join(self.temp_dir, "config.json")
+        with open(config_file, 'w') as f:
+            json.dump(self.config.model_dump(), f)
+        
+        self.config_manager = ConfigManager(config_file)
+        self.unified_logger = UnifiedLogger(self.config_manager)
     
     def teardown_method(self):
         """Clean up test fixtures"""
@@ -79,7 +87,7 @@ class TestUnifiedLogger:
         with open(self.log_file, 'r') as f:
             content = f.read()
             # Should include module, function, and line information
-            assert '"module":"test_context"' in content
+            assert '"module":"test_unified_logger"' in content  # The actual module name
             assert '"function":"test_log_context_information"' in content
             assert '"line":' in content
     
@@ -109,8 +117,16 @@ class TestUnifiedLogger:
         """Test the global setup and getter functions"""
         config = LoggingConfig(log_file_path=self.log_file)
         
+        # Create a temporary config file for the ConfigManager
+        import json
+        config_file = os.path.join(self.temp_dir, "global_config.json")
+        with open(config_file, 'w') as f:
+            json.dump(config.model_dump(), f)
+        
+        config_manager = ConfigManager(config_file)
+        
         # Test setup
-        unified_logger = setup_unified_logging(config)
+        unified_logger = setup_unified_logging(config_manager)
         assert unified_logger is not None
         
         # Test getter
@@ -121,7 +137,15 @@ class TestUnifiedLogger:
         """Test that the handler falls back gracefully on errors"""
         # Create a logger with an invalid log file path to trigger errors
         invalid_config = LoggingConfig(log_file_path="/invalid/path/test.log")
-        unified_logger = UnifiedLogger(invalid_config)
+        
+        # Create a temporary config file for the ConfigManager
+        import json
+        config_file = os.path.join(self.temp_dir, "invalid_config.json")
+        with open(config_file, 'w') as f:
+            json.dump(invalid_config.model_dump(), f)
+        
+        config_manager = ConfigManager(config_file)
+        unified_logger = UnifiedLogger(config_manager)
         
         logger = unified_logger.get_logger("test_fallback")
         
