@@ -15,7 +15,7 @@
   - Write unit tests for log writer operations
   - _Requirements: 1.3, 1.4, 3.4_
 
-- [ ] 3. Create backend API endpoint for receiving logs
+- [x] 3. Create backend API endpoint for receiving logs
   - Implement Flask/FastAPI endpoint to receive log data via POST
   - Add request validation for log entry format
   - Integrate API endpoint with log writer service
@@ -23,7 +23,7 @@
   - Write unit tests for API endpoint
   - _Requirements: 1.1, 1.2, 5.1, 5.3_
 
-- [ ] 4. Implement backend logging integration
+- [x] 4. Implement backend logging integration
   - Set up Python logging to write to the same unified log file
   - Configure backend logger to use consistent formatting
   - Add exception handling to capture backend errors
