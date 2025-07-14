@@ -167,7 +167,7 @@ export class SafariExceptionHandler implements ExceptionHandler {
                             error,
                             context.component,
                             context.functionName,
-                            { arguments: args }
+                            { arguments: args, functionName: context.functionName }
                         );
                         throw error;
                     });
@@ -179,7 +179,7 @@ export class SafariExceptionHandler implements ExceptionHandler {
                     error as Error,
                     context.component,
                     context.functionName,
-                    { arguments: args }
+                    { arguments: args, functionName: context.functionName }
                 );
                 throw error;
             }

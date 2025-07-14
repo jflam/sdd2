@@ -318,16 +318,19 @@ describe('SafariExceptionHandler', () => {
         test('should intercept and log failed HTTP requests', async () => {
             const originalFetch = window.fetch;
             
-            // Create a new handler to test fetch interception
-            new SafariExceptionHandler();
-
+            // Mock the original fetch before creating the handler
             const mockResponse = {
                 ok: false,
                 status: 404,
                 statusText: 'Not Found'
             };
-
-            window.fetch = jest.fn().mockResolvedValue(mockResponse);
+            
+            const mockFetch = jest.fn().mockResolvedValue(mockResponse);
+            window.fetch = mockFetch;
+            
+            // Create a new handler to test fetch interception
+            // This will wrap the mocked fetch
+            new SafariExceptionHandler();
 
             await window.fetch('http://test.com/api');
 
