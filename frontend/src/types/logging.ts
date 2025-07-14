@@ -33,4 +33,15 @@ export interface LoggingConfig {
   maxQueueSize: number;
   logLevel: 'debug' | 'info' | 'warn' | 'error';
   retryAttempts: number;
+  retryDelayMs: number;
+  enabled: boolean;
+  formatOptions: LogFormatOptions;
+}
+
+export interface LogFormatOptions {
+  includeTimestamp: boolean;
+  timestampFormat: 'iso' | 'local' | 'unix';
+  includeSource: boolean;
+  includeContext: boolean;
+  maxMessageLength?: number;
 }
