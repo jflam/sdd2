@@ -1,0 +1,17 @@
+{
+  "apiEndpoint": "http://localhost:8000/api/logs",
+  "batchSize": 10,
+  "flushInterval": 5000,
+  "maxQueueSize": 100,
+  "logLevel": "info",
+  "retryAttempts": 3,
+  "retryDelayMs": 1000,
+  "enabled": true,
+  "formatOptions": {
+    "includeTimestamp": true,
+    "timestampFormat": "iso",
+    "includeSource": true,
+    "includeContext": true,
+    "maxMessageLength": 1000
+  }
+}

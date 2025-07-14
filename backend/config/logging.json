@@ -1,0 +1,17 @@
+{
+  "log_file_path": "logs/unified.log",
+  "max_file_size_mb": 10,
+  "rotation_count": 5,
+  "flush_immediately": true,
+  "api_port": 8000,
+  "api_host": "127.0.0.1",
+  "log_level": "INFO",
+  "enabled": true,
+  "format_config": {
+    "include_timestamp": true,
+    "timestamp_format": "iso",
+    "include_source": true,
+    "include_context": true,
+    "max_message_length": 1000
+  }
+}
