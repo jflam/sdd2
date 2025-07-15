@@ -72,3 +72,28 @@ This feature implements a unified logging system for a Safari browser extension 
 2. WHEN the Safari extension initializes THEN the system SHALL log "Loading <extension name> <version>" as the first log entry
 3. WHEN version information is included in logs THEN the system SHALL use the format major.minor.build
 4. WHEN the extension starts THEN the initial loading message SHALL be sent to the unified logging system
+
+### Requirement 7
+
+**User Story:** As a developer, I want a Chrome extension version of the unified logging system, so that I can validate the concept with a pure command-line development workflow before implementing the Safari version.
+
+#### Acceptance Criteria
+
+1. WHEN developing the Chrome extension THEN the system SHALL use only command-line tools without requiring any GUI applications
+2. WHEN the Chrome extension code is modified THEN the system SHALL automatically increment the version number in manifest.json
+3. WHEN the Chrome extension loads THEN the system SHALL automatically report its version number in the console and unified log
+4. WHEN developing the Chrome extension THEN the system SHALL support hot reloading for maximum development productivity
+5. WHEN the Chrome extension is built THEN the system SHALL create a production-ready extension package
+6. WHEN the Chrome extension is deployed THEN the system SHALL support automated deployment to Chrome Web Store via CLI
+
+### Requirement 8
+
+**User Story:** As a developer, I want the Chrome extension to have feature parity with the Safari extension, so that I can validate the unified logging architecture before porting back to Safari.
+
+#### Acceptance Criteria
+
+1. WHEN the Chrome extension captures logs THEN the system SHALL send them to the same unified logging backend API
+2. WHEN the Chrome extension handles exceptions THEN the system SHALL capture and log them with full stack traces
+3. WHEN the Chrome extension queues logs THEN the system SHALL use the same async batching and retry logic as Safari
+4. WHEN the Chrome extension starts THEN the system SHALL log startup information with version details
+5. WHEN the Chrome extension configuration changes THEN the system SHALL support the same configuration options as Safari

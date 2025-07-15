@@ -2,47 +2,87 @@
 
 ## Overview
 
-The unified logging system consists of a Safari browser extension frontend built with ViteJS that communicates asynchronously with a Python backend to centralize all logging into a single file. The system uses HTTP-based communication for log transmission and implements a structured logging format that combines frontend and backend events with proper source identification and timestamps.
+The unified logging system consists of browser extension frontends (Chrome and Safari) built with ViteJS that communicate asynchronously with a Python backend to centralize all logging into a single file. The system uses HTTP-based communication for log transmission and implements a structured logging format that combines frontend and backend events with proper source identification and timestamps.
+
+The Chrome extension serves as the primary development and validation platform due to its superior command-line development workflow, while the Safari extension provides the target deployment platform.
 
 ## Architecture
 
 ```mermaid
 graph TB
-    A[Safari Extension Frontend] -->|Async HTTP POST| B[Python Backend API]
-    B --> C[Unified Log File]
-    D[Python Backend Logic] --> C
-    E[Developer] -->|tail -f| C
+    A[Chrome Extension Frontend] -->|Async HTTP POST| C[Python Backend API]
+    B[Safari Extension Frontend] -->|Async HTTP POST| C
+    C --> D[Unified Log File]
+    E[Python Backend Logic] --> D
+    F[Developer] -->|tail -f| D
     
-    subgraph "Frontend Components"
-        F[Logger Service]
-        G[Exception Handler]
-        H[Log Queue]
+    subgraph "Chrome Extension (Primary Development)"
+        G[Chrome Service Worker]
+        H[Chrome Content Script]
+        I[Chrome Popup]
+        J[Hot Reload System]
+        K[Version Auto-Increment]
+    end
+    
+    subgraph "Safari Extension (Target Platform)"
+        L[Safari Background Script]
+        M[Safari Content Script]
+        N[Safari Popup]
+    end
+    
+    subgraph "Shared Frontend Components"
+        O[Logger Service]
+        P[Exception Handler]
+        Q[Log Queue]
+        R[Version Manager]
     end
     
     subgraph "Backend Components"
-        I[Log API Endpoint]
-        J[Log Writer Service]
-        K[Backend Logger]
+        S[Log API Endpoint]
+        T[Log Writer Service]
+        U[Backend Logger]
     end
     
-    A --> F
+    subgraph "Development Tools"
+        V[CLI Build System]
+        W[Automated Testing]
+        X[Chrome Web Store Deploy]
+    end
+    
     A --> G
-    F --> H
-    G --> H
-    H -->|Batch Send| B
-    B --> I
-    I --> J
-    D --> K
-    K --> J
-    J --> C
+    A --> H
+    A --> I
+    B --> L
+    B --> M
+    B --> N
+    G --> O
+    H --> O
+    L --> O
+    M --> O
+    O --> P
+    O --> Q
+    P --> Q
+    Q -->|Batch Send| C
+    C --> S
+    S --> T
+    E --> U
+    U --> T
+    T --> D
+    
+    J -->|Auto Reload| A
+    K -->|Version Bump| A
+    V -->|Build| A
+    V -->|Build| B
+    W -->|Test| A
+    X -->|Deploy| A
 ```
 
 ## Components and Interfaces
 
-### Frontend Components
+### Shared Frontend Components
 
 #### Logger Service
-- **Purpose**: Centralized logging interface for the Safari extension
+- **Purpose**: Centralized logging interface for both Chrome and Safari extensions
 - **Interface**: 
   ```typescript
   interface LoggerService {
@@ -76,6 +116,55 @@ graph TB
   }
   ```
 - **Responsibilities**: Queue management, batch transmission, retry logic
+
+#### Version Manager
+- **Purpose**: Automatic version tracking and reporting
+- **Interface**:
+  ```typescript
+  interface VersionManager {
+    getCurrentVersion(): string;
+    incrementVersion(): string;
+    reportVersion(): void;
+    updateManifest(version: string): void;
+  }
+  ```
+- **Responsibilities**: Version auto-increment, startup reporting, manifest updates
+
+### Chrome Extension Specific Components
+
+#### Chrome Service Worker
+- **Purpose**: Background processing for Chrome extension
+- **Interface**: Chrome Extension Service Worker API
+- **Responsibilities**: Extension lifecycle, background logging, version reporting
+
+#### Chrome Content Script
+- **Purpose**: Inject logging into web pages
+- **Interface**: Chrome Extension Content Script API
+- **Responsibilities**: Page-level logging, DOM event capture, console interception
+
+#### Hot Reload System
+- **Purpose**: Development productivity enhancement
+- **Interface**:
+  ```typescript
+  interface HotReloadSystem {
+    watchFiles(patterns: string[]): void;
+    reloadExtension(): void;
+    notifyChanges(): void;
+  }
+  ```
+- **Responsibilities**: File watching, automatic extension reload, change notifications
+
+#### Version Auto-Increment
+- **Purpose**: Automatic version bumping on code changes
+- **Interface**:
+  ```typescript
+  interface VersionAutoIncrement {
+    watchForChanges(): void;
+    incrementBuildNumber(): void;
+    updateManifestVersion(): void;
+  }
+  ```
+- **Responsibilities**: Change detection, version increment, manifest updates
 
 ### Backend Components
 
