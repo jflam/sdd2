@@ -271,3 +271,38 @@ class TestLoggingConfig:
         assert config.log_level == 'DEBUG'
         assert config.enabled is False
         assert config.format_config.include_timestamp is False
+
+    def test_environment_variable_overrides(self):
+        """Test environment variable overrides for configuration"""
+        import os
+        
+        # Store original environment
+        original_env = {}
+        env_vars = ['LOG_FILE_PATH', 'LOG_LEVEL', 'API_PORT', 'FLUSH_IMMEDIATELY']
+        for var in env_vars:
+            original_env[var] = os.environ.get(var)
+        
+        try:
+            # Set environment variables
+            os.environ['LOG_FILE_PATH'] = '/tmp/test_env.log'
+            os.environ['LOG_LEVEL'] = 'DEBUG'
+            os.environ['API_PORT'] = '9999'
+            os.environ['FLUSH_IMMEDIATELY'] = 'false'
+            
+            # Create config manager (should pick up env vars)
+            config_manager = ConfigManager()
+            config = config_manager.get_config()
+            
+            # Check that environment variables were applied
+            assert config.log_file_path == '/tmp/test_env.log'
+            assert config.log_level == 'DEBUG'
+            assert config.api_port == 9999
+            assert config.flush_immediately is False
+            
+        finally:
+            # Restore original environment
+            for var in env_vars:
+                if original_env[var] is not None:
+                    os.environ[var] = original_env[var]
+                elif var in os.environ:
+                    del os.environ[var]

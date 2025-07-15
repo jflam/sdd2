@@ -1,6 +1,6 @@
 import logging
 import sys
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 from .models import LogEntry, LoggingConfig
 from .log_writer import LogWriter
@@ -55,7 +55,7 @@ class UnifiedLogHandler(logging.Handler):
             
             # Create log entry
             log_entry = LogEntry(
-                timestamp=datetime.utcnow().isoformat() + 'Z',
+                timestamp=datetime.now(UTC).isoformat().replace('+00:00', 'Z'),
                 level=level,
                 message=message,
                 source='backend',
@@ -72,7 +72,7 @@ class UnifiedLogHandler(logging.Handler):
             print(f"Failed to write to unified log: {e}", file=sys.stderr)
             # Still try to emit to console
             try:
-                print(f"[{datetime.utcnow().isoformat()}] [{record.levelname}] [BACKEND] {self.format(record)}", 
+                print(f"[{datetime.now(UTC).isoformat()}] [{record.levelname}] [BACKEND] {self.format(record)}", 
                       file=sys.stderr)
             except:
                 pass
@@ -145,7 +145,7 @@ def setup_unified_logging_from_config(config: LoggingConfig) -> UnifiedLogger:
     
     # Create a temporary config file
     with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-        json.dump(config.dict(), f)
+        json.dump(config.model_dump(), f)
         temp_config_path = f.name
     
     try:
