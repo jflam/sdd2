@@ -27,9 +27,31 @@ A comprehensive logging solution that unifies frontend Safari extension logs and
    - Set up Python virtual environment
    - Install all dependencies (Python + Node.js)
    - Start the backend API server (port 8000)
-   - Start the frontend development server (port 5173)
+   - Start the frontend development server (port 5173) for web testing
 
-3. **Monitor logs in real-time:**
+3. **Safari Extension Setup (Required for actual extension functionality):**
+   
+   **Important:** The frontend development server (port 5173) is only for testing the web components. To use this as an actual Safari extension, you need to package it with Xcode.
+
+   **Quick Setup:**
+   ```bash
+   cd frontend
+   npm run build
+   # Then follow the detailed Safari Extension setup process
+   ```
+
+   **📋 For complete Safari Extension setup instructions, see [SAFARI_EXTENSION_SETUP.md](SAFARI_EXTENSION_SETUP.md)**
+
+   This includes:
+   - Xcode project creation
+   - Extension packaging and configuration
+   - Safari installation and permissions
+   - Development workflow and debugging
+   - Common issues and solutions
+
+   **Alternative for Development:** You can test the logging functionality using the web interface at http://localhost:5173, but this won't have Safari extension APIs.
+
+4. **Monitor logs in real-time:**
    ```bash
    # In a separate terminal
    ./monitor-logs.sh
@@ -163,14 +185,106 @@ pytest tests/test_end_to_end.py -v
 
 ## 📱 Safari Extension Development
 
-### Building the Extension
+### Important Note About Safari Extensions
 
+Safari Web Extensions require a native app wrapper and must be packaged using Xcode. The frontend development server (http://localhost:5173) is useful for testing the web components, but **cannot function as an actual Safari extension** without proper packaging.
+
+### Complete Safari Extension Setup Process
+
+#### Step 1: Build the Frontend
 ```bash
 cd frontend
 npm run build
 ```
+This creates the built extension files in `frontend/dist/`.
 
-The built extension will be in `frontend/dist/` and can be loaded into Safari for testing.
+#### Step 2: Create Safari Extension Project in Xcode
+
+1. **Open Xcode** and create a new project
+2. **Select macOS** → **Safari Extension**
+3. **Configure the project:**
+   - Product Name: "Safari Extension Unified Logging"
+   - Bundle Identifier: `com.yourcompany.safari-extension-unified-logging`
+   - Language: Swift
+   - Use Core Data: No
+
+#### Step 3: Configure the Extension
+
+1. **Copy built files:**
+   ```bash
+   # Copy the built frontend files to the Safari Extension's Resources folder
+   cp -r frontend/dist/* "Safari Extension Unified Logging Extension/Resources/"
+   ```
+
+2. **Update manifest.json:**
+   ```json
+   {
+     "manifest_version": 3,
+     "name": "Safari Extension Unified Logging",
+     "version": "1.0.1",
+     "description": "Unified logging system for Safari extension development",
+     "permissions": [
+       "activeTab",
+       "storage"
+     ],
+     "host_permissions": [
+       "http://localhost:8000/*"
+     ],
+     "background": {
+       "scripts": ["background.js"],
+       "persistent": false
+     },
+     "action": {
+       "default_popup": "popup.html",
+       "default_title": "Unified Logging"
+     },
+     "content_scripts": [
+       {
+         "matches": ["<all_urls>"],
+         "js": ["logger.js"]
+       }
+     ]
+   }
+   ```
+
+3. **Configure Info.plist** in the Safari Extension target:
+   - Add `NSAppTransportSecurity` exception for localhost:8000
+   - Set appropriate permissions
+
+#### Step 4: Build and Install
+
+1. **Build the project** in Xcode (⌘+B)
+2. **Run the project** (⌘+R) - this installs the extension
+3. **Enable in Safari:**
+   - Safari → Preferences → Extensions
+   - Enable "Safari Extension Unified Logging"
+   - Grant necessary permissions
+
+#### Step 5: Development Workflow
+
+1. **Start the backend:**
+   ```bash
+   ./start-dev.sh
+   ```
+
+2. **Make frontend changes:**
+   ```bash
+   cd frontend
+   # Edit TypeScript files
+   npm run build
+   ```
+
+3. **Update Safari extension:**
+   ```bash
+   # Copy updated files
+   cp -r frontend/dist/* "Safari Extension Unified Logging Extension/Resources/"
+   # Rebuild in Xcode
+   ```
+
+4. **Monitor logs:**
+   ```bash
+   ./monitor-logs.sh
+   ```
 
 ### Extension Features
 
@@ -178,6 +292,12 @@ The built extension will be in `frontend/dist/` and can be loaded into Safari fo
 - **Exception Handling**: Unhandled exceptions are automatically logged with stack traces
 - **Version Tracking**: Extension version is logged on startup
 - **Async Operation**: Logging doesn't block the UI
+
+### Development vs Production
+
+- **Development**: Use http://localhost:5173 for testing web components
+- **Safari Extension**: Requires Xcode packaging for actual browser extension functionality
+- **Production**: Deploy backend to a server and update API endpoints in the extension
 
 ## 🔍 API Endpoints
 
