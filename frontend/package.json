@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp dist/src/popup.html dist/popup.html && cp manifest.json dist/manifest.json",
     "preview": "vite preview",
     "test": "jest",
     "test:watch": "jest --watch"

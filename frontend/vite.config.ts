@@ -1,13 +1,14 @@
 import { defineConfig } from 'vite'
+import { resolve } from 'path'
 
 export default defineConfig({
   build: {
     outDir: 'dist',
     rollupOptions: {
       input: {
-        popup: 'src/popup.html',
-        content: 'src/content.ts',
-        background: 'src/background.ts'
+        popup: resolve(__dirname, 'src/popup.html'),
+        logger: resolve(__dirname, 'src/logger.ts'),
+        background: resolve(__dirname, 'src/background.ts')
       },
       output: {
         entryFileNames: '[name].js',
@@ -18,7 +19,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': '/src'
+      '@': resolve(__dirname, 'src')
     }
   }
 })
