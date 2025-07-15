@@ -83,3 +83,75 @@
   - Add example usage and configuration documentation
   - Create debugging guides for common issues
   - _Requirements: 3.3, 4.1_
+
+- [x] 12. Create Chrome extension project structure
+  - Set up Chrome extension directory with manifest.json
+  - Configure Vite build system for Chrome extension development
+  - Create Chrome-specific entry points (service worker, content script, popup)
+  - Set up TypeScript configuration for Chrome extension APIs
+  - Implement shared module structure for code reuse between Chrome and Safari
+  - _Requirements: 7.1, 7.5_
+
+- [ ] 13. Implement automatic version management for Chrome extension
+  - Create version auto-increment system that triggers on code changes
+  - Update manifest.json version automatically during build process
+  - Implement version reporting on Chrome extension startup
+  - Add version logging to unified log file on extension load
+  - Create CLI commands for manual version bumping
+  - _Requirements: 7.2, 7.3, 8.4_
+
+- [ ] 14. Build Chrome extension hot reloading system
+  - Implement file watching system for Chrome extension development
+  - Create automatic extension reload mechanism when files change
+  - Set up development server with hot reload capabilities
+  - Add change notifications and reload status indicators
+  - Optimize reload speed for maximum development productivity
+  - _Requirements: 7.4_
+
+- [ ] 15. Port unified logging functionality to Chrome extension
+  - Adapt existing logger service for Chrome extension APIs
+  - Implement Chrome service worker for background logging
+  - Create Chrome content script for page-level log capture
+  - Port exception handling to Chrome extension environment
+  - Ensure feature parity with Safari extension logging capabilities
+  - _Requirements: 8.1, 8.2, 8.3, 8.5_
+
+- [ ] 16. Implement Chrome extension popup and UI
+  - Create Chrome extension popup interface
+  - Add version display and connection status indicators
+  - Implement configuration management through popup UI
+  - Add manual log testing and debugging features
+  - Ensure UI consistency with Safari extension design
+  - _Requirements: 8.1, 8.5_
+
+- [ ] 17. Create Chrome extension build and deployment automation
+  - Set up command-line build process for Chrome extension
+  - Create production build with proper asset optimization
+  - Implement Chrome Web Store deployment automation
+  - Add automated testing pipeline for Chrome extension
+  - Create packaging scripts for distribution
+  - _Requirements: 7.1, 7.5, 7.6_
+
+- [ ] 18. Add Chrome extension testing and validation
+  - Create automated tests using Puppeteer and headless Chrome
+  - Implement end-to-end testing for Chrome extension functionality
+  - Add performance testing for high-volume logging scenarios
+  - Create cross-browser compatibility tests
+  - Validate unified logging works identically to Safari extension
+  - _Requirements: 8.1, 8.2, 8.3_
+
+- [ ] 19. Optimize Chrome extension development workflow
+  - Create CLI commands for common development tasks
+  - Add development mode with enhanced debugging features
+  - Implement automatic backend connection and health checking
+  - Create development documentation and quick start guides
+  - Add troubleshooting guides for Chrome extension specific issues
+  - _Requirements: 7.1, 7.4_
+
+- [ ] 20. Validate Chrome extension as Safari extension prototype
+  - Compare Chrome and Safari extension functionality for feature parity
+  - Document differences and platform-specific considerations
+  - Create migration guide for porting Chrome extension features to Safari
+  - Validate unified logging architecture through Chrome extension usage
+  - Prepare Chrome extension as reference implementation for Safari port
+  - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
