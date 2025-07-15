@@ -38,17 +38,58 @@ class ConfigManager:
         return os.path.join(os.path.dirname(__file__), '..', 'config', 'logging.json')
 
     def _load_config(self) -> LoggingConfig:
-        """Load configuration from file or use defaults"""
+        """Load configuration from file or use defaults, with environment variable overrides"""
+        config_data = {}
+        
+        # First, try to load from file if it exists
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, 'r') as f:
                     config_data = json.load(f)
-                return self._dict_to_config(config_data)
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 print(f"Warning: Failed to load config from {self.config_path}: {e}")
                 print("Using default configuration")
         
-        return LoggingConfig()
+        # Apply environment variable overrides
+        env_overrides = self._get_env_overrides()
+        config_data.update(env_overrides)
+        
+        if config_data:
+            return self._dict_to_config(config_data)
+        else:
+            return LoggingConfig()
+
+    def _get_env_overrides(self) -> Dict[str, Any]:
+        """Get configuration overrides from environment variables"""
+        overrides = {}
+        
+        # Map environment variable names to config fields
+        env_mapping = {
+            'LOG_FILE_PATH': 'log_file_path',
+            'MAX_FILE_SIZE_MB': 'max_file_size_mb',
+            'ROTATION_COUNT': 'rotation_count',
+            'FLUSH_IMMEDIATELY': 'flush_immediately',
+            'API_PORT': 'api_port',
+            'API_HOST': 'api_host',
+            'LOG_LEVEL': 'log_level',
+            'ENABLED': 'enabled',
+        }
+        
+        for env_var, config_field in env_mapping.items():
+            value = os.environ.get(env_var)
+            if value is not None:
+                # Convert string values to appropriate types
+                if config_field in ['max_file_size_mb', 'rotation_count', 'api_port']:
+                    try:
+                        overrides[config_field] = int(value)
+                    except ValueError:
+                        print(f"Warning: Invalid integer value for {env_var}: {value}")
+                elif config_field in ['flush_immediately', 'enabled']:
+                    overrides[config_field] = value.lower() in ('true', '1', 'yes', 'on')
+                else:
+                    overrides[config_field] = value
+        
+        return overrides
 
     def _dict_to_config(self, data: Dict[str, Any]) -> LoggingConfig:
         """Convert dictionary to LoggingConfig object"""
