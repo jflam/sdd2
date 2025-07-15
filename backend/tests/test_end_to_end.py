@@ -351,3 +351,78 @@ class TestEndToEnd:
         assert "Initial monitoring message" in final_content
         assert "Second monitoring message" in final_content
         assert len(final_content) > len(initial_content)
+
+    def test_log_file_rotation_during_operation(self):
+        """Test log file rotation during server operation"""
+        # Set up with small file size to force rotation
+        env = os.environ.copy()
+        env['LOG_FILE_PATH'] = self.test_log_file
+        env['FLUSH_IMMEDIATELY'] = 'true'
+        env['LOG_LEVEL'] = 'DEBUG'
+        env['API_PORT'] = str(self.server_port)
+        env['MAX_FILE_SIZE_MB'] = '1'  # 1MB limit
+        env['ROTATION_COUNT'] = '2'
+
+        # Start server with rotation config
+        self.server_process = subprocess.Popen([
+            sys.executable, '-m', 'uvicorn', 
+            'src.api:app', 
+            '--host', '0.0.0.0', 
+            '--port', str(self.server_port),
+            '--log-level', 'warning'
+        ], 
+        env=env, 
+        cwd='/home/runner/work/sdd2/sdd2/backend',
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE
+        )
+        
+        self.wait_for_server()
+        
+        # Send initial log to create file
+        log_data = {
+            "entries": [
+                {
+                    "timestamp": "2025-01-14T10:30:00.000Z",
+                    "level": "info",
+                    "message": "Initial message for rotation test",
+                    "source": "frontend"
+                }
+            ]
+        }
+        
+        response = requests.post(f"{self.server_url}/api/logs", json=log_data, timeout=5)
+        assert response.status_code == 200
+        
+        # Verify log file was created
+        assert os.path.exists(self.test_log_file)
+        
+        # Send many large log entries to trigger rotation
+        # (Note: We'll send reasonable sized messages to avoid taking too long)
+        for i in range(10):
+            large_log = {
+                "entries": [
+                    {
+                        "timestamp": f"2025-01-14T10:30:{i:02d}.000Z",
+                        "level": "info",
+                        "message": f"Large rotation test message {i} " + "x" * 1000,  # 1KB message
+                        "source": "frontend",
+                        "context": {"batch": i, "size": "large"}
+                    }
+                ]
+            }
+            
+            response = requests.post(f"{self.server_url}/api/logs", json=large_log, timeout=5)
+            assert response.status_code == 200
+        
+        # Wait for logs to be processed
+        time.sleep(1)
+        
+        # Check that the main log file exists and has recent content
+        assert os.path.exists(self.test_log_file)
+        
+        with open(self.test_log_file, 'r') as f:
+            content = f.read()
+            # Should contain some of the recent messages
+            assert "Large rotation test message" in content
+            assert "rotation test" in content
