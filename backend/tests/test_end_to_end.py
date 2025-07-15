@@ -1,17 +1,20 @@
+import pytest
+import asyncio
+import tempfile
 import os
-import sys
 import json
 import time
-import tempfile
-import subprocess
 import threading
+import subprocess
 import requests
-from pathlib import Path
-from typing import Optional
+from unittest.mock import patch
+
+from src.config import ConfigManager
+from src.models import LoggingConfig
 
 
 class TestEndToEnd:
-    """End-to-end tests that start real server processes"""
+    """End-to-end tests that test the complete system integration"""
     
     def setup_method(self):
         """Set up test fixtures"""
