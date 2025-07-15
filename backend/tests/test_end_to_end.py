@@ -7,6 +7,7 @@ import time
 import threading
 import subprocess
 import requests
+import sys
 from unittest.mock import patch
 
 from src.config import ConfigManager
@@ -50,7 +51,7 @@ class TestEndToEnd:
             '--log-level', 'warning'  # Reduce uvicorn noise
         ], 
         env=env, 
-        cwd='/home/runner/work/sdd2/sdd2/backend',
+        cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
         )
@@ -375,7 +376,7 @@ class TestEndToEnd:
             '--log-level', 'warning'
         ], 
         env=env, 
-        cwd='/home/runner/work/sdd2/sdd2/backend',
+        cwd=os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE
         )

@@ -1,6 +1,6 @@
 import logging
 import sys
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Optional
 from .models import LogEntry, LoggingConfig
 from .log_writer import LogWriter
@@ -55,7 +55,7 @@ class UnifiedLogHandler(logging.Handler):
             
             # Create log entry
             log_entry = LogEntry(
-                timestamp=datetime.now(UTC).isoformat().replace('+00:00', 'Z'),
+                timestamp=datetime.now(timezone.utc).isoformat().replace('+00:00', 'Z'),
                 level=level,
                 message=message,
                 source='backend',
@@ -72,7 +72,7 @@ class UnifiedLogHandler(logging.Handler):
             print(f"Failed to write to unified log: {e}", file=sys.stderr)
             # Still try to emit to console
             try:
-                print(f"[{datetime.now(UTC).isoformat()}] [{record.levelname}] [BACKEND] {self.format(record)}", 
+                print(f"[{datetime.now(timezone.utc).isoformat()}] [{record.levelname}] [BACKEND] {self.format(record)}", 
                       file=sys.stderr)
             except:
                 pass
